@@ -29,7 +29,7 @@ function App() {
           
           {/* --- Rute untuk Admin --- */}
           <Route path="/admin/login" element={<AdminLoginPage />} />
-          {/* <Route path="/admin/dashboard" element={<AdminDashboardPage />} /> */}
+          <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
           
           {/* Rute untuk halaman tidak ditemukan */}
           <Route path="*" element={
