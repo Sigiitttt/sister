@@ -1,92 +1,88 @@
 import React, { useState } from 'react';
-import { getQuotaByDate } from '../services/api';
-import Card from '../components/Card';
-import Button from '../components/Button';
-import Input from '../components/Input';
+import { checkQuota } from '../services/api';
+import Card from '../components/ui/Card';
+import Input from '../components/ui/Input';
+import Button from '../components/ui/Button';
 
-export default function CekKuotaPage() {
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-  const [quota, setQuota] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [searched, setSearched] = useState(false); // Untuk menandai apakah pencarian sudah dilakukan
+const CekKuotaPage = () => {
+    const [selectedDate, setSelectedDate] = useState('');
+    const [quotaData, setQuotaData] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const [message, setMessage] = useState('Silakan pilih tanggal untuk melihat kuota yang tersedia.');
 
-  const handleCekKuota = async (e) => {
-    e.preventDefault();
-    if (!selectedDate) {
-      setError('Silakan pilih tanggal terlebih dahulu.');
-      return;
-    }
+    // Fungsi untuk mendapatkan tanggal hari ini dalam format YYYY-MM-DD
+    const getTodayDate = () => {
+        const today = new Date();
+        return today.toISOString().split('T')[0];
+    };
 
-    setLoading(true);
-    setError('');
-    setQuota(null);
-    setSearched(true);
+    const handleCheckQuota = async (e) => {
+        e.preventDefault(); // Mencegah form dari reload halaman
 
-    try {
-      const response = await getQuotaByDate(selectedDate);
-      setQuota(response.data);
-    } catch (err) {
-      console.error("Gagal mengambil data kuota:", err);
-      if (err.response && err.response.status === 404) {
-        setError(`Kuota untuk tanggal ${new Date(selectedDate).toLocaleDateString('id-ID', { dateStyle: 'long' })} belum ditetapkan.`);
-      } else {
-        setError('Gagal terhubung ke server. Silakan coba lagi nanti.');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+        if (!selectedDate) {
+            setError('Tanggal harus dipilih terlebih dahulu.');
+            return;
+        }
 
-  return (
-    <div className="container mx-auto p-4 md:p-8 min-h-[70vh]">
-      <div className="max-w-2xl mx-auto">
-        <h1 className="text-3xl md:text-4xl font-bold text-center mb-2">Cek Kuota Pendakian</h1>
-        <p className="text-center text-gray-500 mb-8">Pilih tanggal untuk melihat ketersediaan kuota pendakian.</p>
+        setLoading(true);
+        setError(null);
+        setQuotaData(null);
+        setMessage(null);
 
-        <Card>
-          <form onSubmit={handleCekKuota} className="flex flex-col sm:flex-row items-end gap-4">
-            <div className="w-full">
-              <label htmlFor="tanggal" className="block text-sm font-medium text-gray-700 mb-1">
-                Pilih Tanggal Pendakian
-              </label>
-              <Input
-                type="date"
-                id="tanggal"
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                min={new Date().toISOString().split('T')[0]} // Tanggal minimal adalah hari ini
-                className="py-3"
-              />
-            </div>
-            <Button type="submit" disabled={loading} className="w-full sm:w-auto py-3">
-              {loading ? 'Mencari...' : 'Cek Kuota'}
-            </Button>
-          </form>
-        </Card>
+        try {
+            // 1. Memanggil fungsi API 'checkQuota' dengan tanggal yang dipilih
+            const response = await checkQuota(selectedDate);
 
-        <div className="mt-8">
-          {loading && <p className="text-center text-gray-500">Mencari kuota...</p>}
-          {error && <p className="text-center text-red-500 bg-red-100 p-4 rounded-lg">{error}</p>}
+            // 2. Menyimpan data yang diterima dari backend ke dalam state
+            // Data ini berasal dari database yang diakses oleh backend
+            setQuotaData(response.data.data); // [cite: 68]
+        } catch (err) {
+            console.error("Gagal mengecek kuota:", err);
+            setError("Gagal mengambil data kuota. Silakan coba lagi.");
+            if (err.response && err.response.status === 404) {
+                setError(`Tidak ada data kuota untuk tanggal ${selectedDate}.`);
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
 
-          {searched && !loading && !error && quota && (
-            <Card title={`Hasil Kuota untuk ${new Date(selectedDate).toLocaleDateString('id-ID', { dateStyle: 'long' })}`}>
-              <div className="text-center">
-                <p className="text-6xl font-bold">
-                  <span className="text-blue-600">{quota.kuota_max - quota.kuota_terpakai}</span>
-                  <span className="text-3xl text-gray-500"> / {quota.kuota_max}</span>
-                </p>
-                <p className="text-2xl text-gray-700 mt-2">Kuota Tersisa</p>
-                {(quota.kuota_max - quota.kuota_terpakai) > 0 ? (
-                  <p className="text-green-600 mt-4">Tersedia untuk booking.</p>
-                ) : (
-                  <p className="text-red-600 mt-4">Kuota sudah penuh.</p>
+    return (
+        <Card title="Cek Ketersediaan Kuota Pendakian">
+            <form onSubmit={handleCheckQuota} className="space-y-4">
+                <Input
+                    label="Pilih Tanggal Pendakian"
+                    id="tanggal_pendakian"
+                    type="date"
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    required
+                    min={getTodayDate()}
+                />
+                <Button type="submit" disabled={loading}>
+                    {loading ? 'Mencari...' : 'Cek Kuota'}
+                </Button>
+            </form>
+
+            <div className="mt-6">
+                {error && <p className="text-red-500">{error}</p>}
+                {message && <p className="text-gray-600">{message}</p>}
+
+                {/* 3. Menampilkan data yang berhasil diambil */}
+                {quotaData && (
+                    <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
+                        <p className="font-semibold text-gray-800">
+                            Hasil Pengecekan untuk Tanggal: {new Date(quotaData.tanggal).toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                        </p>
+                        <p className="text-2xl font-bold text-green-700 mt-2">
+                            Kuota Tersedia: {quotaData.kuota_tersedia} orang
+                        </p>
+                    </div>
                 )}
-              </div>
-            </Card>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
+            </div>
+        </Card>
+    );
+};
+
+export default CekKuotaPage;
