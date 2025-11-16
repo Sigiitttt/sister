@@ -1,5 +1,3 @@
-// src/components/layout/Sidebar.jsx
-
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 
@@ -8,8 +6,8 @@ const Sidebar = () => {
 
   const handleLogout = () => {
     if (window.confirm("Apakah Anda yakin ingin logout?")) {
-      localStorage.removeItem('authToken'); // Hapus token dari penyimpanan
-      navigate('/admin/login'); // Arahkan ke halaman login
+      localStorage.removeItem('authToken');
+      navigate('/admin/login');
     }
   };
 
@@ -33,6 +31,10 @@ const Sidebar = () => {
           <NavLink to="/admin/operasional" className={navLinkClasses}>
             <span className="mx-4 font-medium">Operasional Harian</span>
           </NavLink>
+          {/* --- PERBAIKAN: Tautan Baru Ditambahkan --- */}
+          <NavLink to="/admin/kuota" className={navLinkClasses}>
+            <span className="mx-4 font-medium">Manajemen Kuota</span>
+          </NavLink>
           <NavLink to="/admin/blacklist" className={navLinkClasses}>
             <span className="mx-4 font-medium">Manajemen Blacklist</span>
           </NavLink>
@@ -43,7 +45,6 @@ const Sidebar = () => {
             onClick={handleLogout}
             className="w-full flex items-center px-4 py-2 mt-2 text-gray-400 rounded-md hover:bg-red-800 hover:text-gray-100"
           >
-            {/* SVG Icon for Logout */}
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
             </svg>

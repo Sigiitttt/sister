@@ -21,11 +21,8 @@ const AdminLoginPage = () => {
 
         try {
             const response = await loginAdmin({ email, password });
-            // Jika login berhasil, simpan token ke localStorage
             const { access_token } = response.data;
-            localStorage.setItem('authToken', access_token);
 
-            // Arahkan ke halaman dashboard admin
             navigate('/admin/dashboard');
 
         } catch (err) {

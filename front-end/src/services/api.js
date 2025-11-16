@@ -1,5 +1,3 @@
-// src/services/api.js
-
 import axios from 'axios';
 
 const apiClient = axios.create({
@@ -9,13 +7,9 @@ const apiClient = axios.create({
   },
 });
 
-// Axios Request Interceptor
-// Fungsi ini akan dijalankan SEBELUM setiap request dikirim
 apiClient.interceptors.request.use(
   (config) => {
-    // Ambil token dari localStorage
     const token = localStorage.getItem('authToken');
-    // Jika request menuju endpoint admin dan token ada, tambahkan header Authorization
     if (token && config.url.startsWith('/admin')) {
       config.headers['Authorization'] = `Bearer ${token}`;
     }
@@ -28,7 +22,6 @@ apiClient.interceptors.request.use(
 
 
 // --- API PUBLIK UNTUK PENDAKI ---
-// (Fungsi-fungsi yang sudah ada sebelumnya tetap di sini)
 export const getSop = () => apiClient.get('/info/sop');
 export const getWeather = () => apiClient.get('/info/weather');
 export const checkQuota = (tanggal) => apiClient.get(`/quotas?tanggal=${tanggal}`);
@@ -42,34 +35,21 @@ export const uploadPaymentProof = (kodeBooking, formData) => {
   });
 };
 
-// GET /admin/bookings/today
-export const getTodayBookings = () => apiClient.get('/admin/bookings/today');
-
-// POST /admin/checkin
-export const checkinBooking = (kodeBooking) => apiClient.post('/admin/checkin', { kode_booking: kodeBooking });
-
-// PATCH /admin/checkout
-export const checkoutBooking = (kodeBooking) => apiClient.patch('/admin/checkout', { kode_booking: kodeBooking });
-
-// GET /admin/history
-export const getHistory = () => apiClient.get('/admin/history');
-
 
 // --- API ADMIN ---
-
-// POST /admin/login
 export const loginAdmin = (credentials) => apiClient.post('/admin/login', credentials);
-
-// GET /admin/payments
 export const getPendingPayments = () => apiClient.get('/admin/payments');
-
-// PATCH /admin/payments/{id}/verify
 export const verifyPayment = (paymentId) => apiClient.patch(`/admin/payments/${paymentId}/verify`);
-
-// GET /admin/hikers
 export const getAllHikers = () => apiClient.get('/admin/hikers');
-
-// PATCH /admin/hikers/{id}/blacklist
 export const updateHikerStatus = (hikerId, data) => apiClient.patch(`/admin/hikers/${hikerId}/blacklist`, data);
+export const getTodayBookings = () => apiClient.get('/admin/bookings/today');
+export const checkinBooking = (bookingId) => apiClient.post('/admin/checkin', { booking_id: bookingId });
+export const checkoutBooking = (bookingId) => apiClient.patch('/admin/checkout', { booking_id: bookingId });
+export const getHistory = () => apiClient.get('/admin/history');
+
+// --- PERBAIKAN: Fungsi API Kuota Baru ---
+export const getAdminQuotas = () => apiClient.get('/admin/quotas');
+export const saveQuota = (quotaData) => apiClient.post('/admin/quotas', quotaData);
+
 
 export default apiClient;
